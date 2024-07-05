@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -12,14 +11,58 @@ import (
 	"unicode/utf8"
 )
 
-func isNumber(r rune) (rune, error) {
+func runeIsNumber(r rune) bool {
 	_, err := strconv.ParseInt(string(r), 0, 64)
 
 	if err != nil {
-		return 0, errors.New("Not a number")
+		return false
 	}
 
-	return r, nil
+	return true
+}
+
+func extractNumbersFromString(s string) *strings.Builder {
+	stringReader := strings.NewReader(s)
+	var builder strings.Builder
+
+	for {
+		ch, _, err := stringReader.ReadRune()
+		if err != nil {
+			break
+		}
+
+		if !runeIsNumber(ch) {
+			continue
+		}
+
+		builder.WriteRune(ch)
+	}
+
+	return &builder
+}
+
+func parseFirstAndLastNumber(builder *strings.Builder) string {
+		var firstAndLastNumber strings.Builder
+
+		firstRune, _ := utf8.DecodeRuneInString(builder.String())
+
+		firstAndLastNumber.WriteRune(firstRune)
+
+		lastRune, _ := utf8.DecodeLastRuneInString(builder.String())
+
+		firstAndLastNumber.WriteRune(lastRune)
+
+		return firstAndLastNumber.String()
+}
+
+func sumSlice(numbers []int64) int64 {
+	var sum int64
+
+	for _, v := range numbers {
+		sum += v
+	}
+
+	return sum
 }
 
 func main() {
@@ -48,44 +91,14 @@ func main() {
 
 		trimedLine := strings.TrimSpace(line)
 
-		stringReader := strings.NewReader(trimedLine)
+		builder := extractNumbersFromString(trimedLine)
 
-		var builder strings.Builder
+		combinedNumber, _ := strconv.ParseInt(parseFirstAndLastNumber(builder), 0, 64)
 
-		for {
-			ch, _, err := stringReader.ReadRune()
-			if err != nil {
-				break
-			}
-
-			num, err := isNumber(ch)
-			if err != nil {
-				continue
-			}
-
-			builder.WriteRune(num)
-		}
-
-		var finalNumber strings.Builder
-
-		firstRune, _ := utf8.DecodeRuneInString(builder.String())
-
-		finalNumber.WriteRune(firstRune)
-
-		lastRune, _ := utf8.DecodeLastRuneInString(builder.String())
-
-		finalNumber.WriteRune(lastRune)
-
-		lastNumber, _ := strconv.ParseInt(finalNumber.String(), 0, 64)
-
-		numbers = append(numbers, lastNumber)
+		numbers = append(numbers, combinedNumber)
 	}
 
-	var sum int64
-
-	for _, v := range numbers {
-		sum += v
-	}
+	sum := sumSlice(numbers)
 
 	fmt.Println(sum)
 }
