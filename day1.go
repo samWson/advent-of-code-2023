@@ -11,6 +11,14 @@ import (
 	"unicode/utf8"
 )
 
+func openFileFromArgs() (*os.File, error) {
+	path := os.Args[1]
+
+	file, err := os.Open(path)
+
+	return file, err
+}
+
 func runeIsNumber(r rune) bool {
 	_, err := strconv.ParseInt(string(r), 0, 64)
 
@@ -65,10 +73,9 @@ func sumSlice(numbers []int64) int64 {
 	return sum
 }
 
-func main() {
-	path := os.Args[1]
 
-	file, err := os.Open(path)
+func main() {
+	file, err := openFileFromArgs()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,9 +100,9 @@ func main() {
 
 		builder := extractNumbersFromString(trimedLine)
 
-		combinedNumber, _ := strconv.ParseInt(parseFirstAndLastNumber(builder), 0, 64)
+		firstAndLastNumber, _ := strconv.ParseInt(parseFirstAndLastNumber(builder), 0, 64)
 
-		numbers = append(numbers, combinedNumber)
+		numbers = append(numbers, firstAndLastNumber)
 	}
 
 	sum := sumSlice(numbers)
